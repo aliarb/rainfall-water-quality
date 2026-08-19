@@ -36,7 +36,7 @@ from rainfall_wq.config import (  # noqa: E402
     OUTPUTS,
     classify_daily_rain_mm,
 )
-from rainfall_wq.metrics import skill_table  # noqa: E402
+from rainfall_wq.figures import plot_timeseries, plot_turbidity_by_class  # noqa: E402
 
 TARGETS = ["turbidity_fnu", "dissolved_oxygen_mg_l", "salinity_psu", "water_temp_c"]
 LAGS_DAYS = list(range(0, 8))
@@ -253,34 +253,8 @@ def make_plots(df: pd.DataFrame, models: dict[str, dict]) -> None:
     OUTPUTS.mkdir(parents=True, exist_ok=True)
     plt.style.use("seaborn-v0_8-whitegrid")
 
-    fig, axes = plt.subplots(3, 1, figsize=(11, 8), sharex=True)
-    axes[0].bar(df.index, df["precip_mm"], color="#4C78A8", width=1.0)
-    axes[0].set_ylabel("Precip (mm)")
-    axes[0].set_title("Central Park daily rainfall and USGS Pier 84 water quality")
-    if "turbidity_fnu" in df.columns:
-        axes[1].plot(df.index, df["turbidity_fnu"], color="#F58518", lw=0.8)
-        axes[1].set_ylabel("Turbidity (FNU)")
-    if "dissolved_oxygen_mg_l" in df.columns:
-        axes[2].plot(df.index, df["dissolved_oxygen_mg_l"], color="#54A24B", lw=0.8)
-        axes[2].set_ylabel("DO (mg/L)")
-    axes[2].set_xlabel("Date")
-    fig.tight_layout()
-    fig.savefig(OUTPUTS / "timeseries_rain_turbidity_do.png", dpi=140)
-    plt.close(fig)
-
-    fig, ax = plt.subplots(figsize=(7, 4))
-    order = ["sunny", "light", "medium", "heavy", "rainstorm", "extreme"]
-    if "turbidity_fnu" in df.columns:
-        present = [c for c in order if c in set(df["rain_class"]) and df.loc[df["rain_class"] == c, "turbidity_fnu"].notna().any()]
-        data = [df.loc[df["rain_class"] == c, "turbidity_fnu"].dropna() for c in present]
-        ax.boxplot(data, showfliers=False)
-        ax.set_xticklabels(present)
-        ax.set_ylabel("Turbidity (FNU)")
-        ax.set_xlabel("Rainfall class (Lin et al. 2024 Table 4)")
-        ax.set_title("Pier 84 turbidity by Central Park rainfall class")
-    fig.tight_layout()
-    fig.savefig(OUTPUTS / "turbidity_by_rain_class.png", dpi=140)
-    plt.close(fig)
+    plot_timeseries(df)
+    plot_turbidity_by_class(df)
 
     if "turbidity_fnu" in models:
         m = models["turbidity_fnu"]

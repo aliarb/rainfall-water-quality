@@ -4,6 +4,18 @@ Analytical models that link **extreme rainfall and combined-sewer overflow (CSO)
 
 This repository is a first baseline: public data, event classification from Lin et al. (2024), skill scores (R², NSE), and a reduced-form rain → water-quality transfer function. A full SWMM–EFDC land–river coupling is formulated for later work once pipe-network and bathymetry layers are available.
 
+## In short
+
+Rain does not just dilute the Hudson — it delivers a pulse of street runoff and, above a small threshold, untreated sewage. That pulse is clearest in bacteria, strongest in heavy and extreme storms, and easy to miss if you only watch the tidal river’s everyday turbidity and oxygen.
+
+![Rain, runoff, and sewage — three views](outputs/story_rain_pollution.png)
+
+- **Bacteria (left):** at Hudson River Park (N4, W. 42nd St), median fecal coliform rises from 51 cells/100 mL on sunny days to **204** on heavy-rain days — untreated sewage from combined-sewer overflow.
+- **Extreme storms (middle):** everyday turbidity barely changes from sunny through rainstorm; only the rarest (≥100 mm) days jump.
+- **Oxygen (right):** the big swing is winter vs summer, not rain vs dry.
+
+Callouts on the turbidity boxplot, rainfall time series (red = extreme storms), and oxygen panel mark the same points.
+
 ## Study site
 
 **USGS 01376515 — Hudson River at Pier 84, New York, NY** sits on the left bank in Hudson River Park (40.765°N, 74.003°W), about 4 miles upstream of the mouth. A multi-parameter sonde records water temperature, specific conductance, pH, dissolved oxygen, and turbidity every 15 minutes (May 2019–April 2025 in the current pull). Salinity is not published as a separate instantaneous series here; specific conductance is the mixing proxy.
@@ -38,6 +50,7 @@ pip install -r requirements.txt
 python scripts/fetch_all.py          # add --skip-iv to skip 15-minute USGS
 python scripts/run_baseline.py      # daily rain-class baseline
 python scripts/run_wave1.py         # tides, storms, DLM/GAM, N4/N5 bacteria
+python scripts/plot_annotated.py    # plain-language callouts on the figures
 ```
 
 ## Mathematical model
@@ -73,7 +86,7 @@ Daily-mean turbidity is not a clean linear function of daily rain (tides dominat
 | Rainstorm | 11 | 9.8 | 7.71 |
 | Extreme (≥100 mm) | 5 | **19.9** | **6.91** |
 
-![Turbidity by rainfall class](outputs/turbidity_by_rain_class.png)
+![Turbidity by rainfall class — extreme storms marked](outputs/turbidity_by_rain_class.png)
 
 ### Transfer-function skill (last 20% hold-out)
 
@@ -86,7 +99,7 @@ Daily-mean turbidity is not a clean linear function of daily rain (tides dominat
 
 DO is mostly the annual cycle; rainfall adds a small increment (NSE 0.84 → 0.87). Daily-mean turbidity is not predictable from Central Park daily rain at this tidal site. That is expected: CSO pulses last hours, and the Hudson at Pier 84 is a well-mixed estuary.
 
-![Rain, turbidity, and DO](outputs/timeseries_rain_turbidity_do.png)
+![Rain, turbidity, and oxygen — extreme storms in red](outputs/timeseries_rain_turbidity_do.png)
 
 ### Harbor Survey pathogens (N4 / N5) — the CSO signature
 
@@ -98,6 +111,8 @@ Grab-sample **enterococci** and **fecal coliform** at the park stations rise wit
 | N5 (Battery) | 5 / 44 | 21 / 140 | **26 / 104** |
 
 Medians, cells/100 mL; sample sizes are small on heavy days (n = 5).
+
+![N4 bacteria vs rainfall class, with dry vs CSO callouts](outputs/harbor_bacteria_by_rain_class.png)
 
 ## Wave 1–2: tides, storms, DLM/GAM, bacteria
 
@@ -156,6 +171,7 @@ scripts/fetch_harbor.py     # DEP Harbor Survey N3B/N4/N5
 scripts/fetch_all.py
 scripts/run_baseline.py     # daily rain-class baseline
 scripts/run_wave1.py        # harmonics, storms, DLM/GAM, bacteria GLM
+scripts/plot_annotated.py   # annotate figures with the plain-language finding
 src/rainfall_wq/            # tides, events, first flush, response models
 docs/model_formulation.md
 paper/README.md             # local PDF only; not in this git repo

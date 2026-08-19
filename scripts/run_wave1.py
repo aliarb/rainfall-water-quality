@@ -35,7 +35,7 @@ from rainfall_wq.response import (  # noqa: E402
     fit_dlm,
     fit_gam,
 )
-from rainfall_wq.tides import fit_harmonics, harmonic_design  # noqa: E402
+from rainfall_wq.figures import plot_epoch_annotated, plot_first_flush_annotated  # noqa: E402
 
 TARGETS = ["turbidity_fnu", "dissolved_oxygen_mg_l", "specific_conductance_uS_cm"]
 
@@ -147,38 +147,10 @@ def make_plots(
     plt.close(fig)
 
     if not epoch_turb.empty:
-        fig, ax = plt.subplots(figsize=(8, 4))
-        for group, color in [("below_cso_threshold", "#4C78A8"), ("cso_proxy", "#E45756")]:
-            g = epoch_turb[epoch_turb["group"] == group].sort_values("lead_h")
-            if g.empty:
-                continue
-            ax.plot(g["lead_h"], g["mean"], color=color, lw=1.6, label=group.replace("_", " "))
-            ax.fill_between(g["lead_h"], g["q25"], g["q75"], color=color, alpha=0.15)
-        ax.axhline(0, color="0.5", lw=0.7)
-        ax.axvline(0, color="0.5", lw=0.7, ls="--")
-        ax.set_xlabel("Hours from event start")
-        ax.set_ylabel("Turbidity residual (FNU)")
-        ax.set_title("Superposed epoch: turbidity residual around rain events")
-        ax.legend(fontsize=8)
-        fig.tight_layout()
-        fig.savefig(OUTPUTS / "superposed_epoch_turbidity.png", dpi=140)
-        plt.close(fig)
+        plot_epoch_annotated(epoch_turb)
 
     if not mv.empty:
-        fig, ax = plt.subplots(figsize=(5.5, 5))
-        ax.plot([0, 1], [0, 1], color="0.5", ls="--", lw=1, label="uniform washoff")
-        ax.plot(mv["V"], mv["M_median"], color="#E45756", lw=2, label="median M(V)")
-        ax.fill_between(mv["V"], mv["M_q25"], mv["M_q75"], color="#E45756", alpha=0.2)
-        ax.set_xlabel("Cumulative rain fraction V")
-        ax.set_ylabel("Cumulative excess turbidity fraction M")
-        n = int(mv["n_events"].iloc[0])
-        ax.set_title(f"First flush proxy, CSO-threshold events (n={n})")
-        ax.set_xlim(0, 1)
-        ax.set_ylim(0, 1)
-        ax.legend(fontsize=8, loc="upper left")
-        fig.tight_layout()
-        fig.savefig(OUTPUTS / "first_flush_mv.png", dpi=140)
-        plt.close(fig)
+        plot_first_flush_annotated(mv)
 
     lag = dlm_turb["lag_coef"]
     fig, ax = plt.subplots(figsize=(7, 3.5))
