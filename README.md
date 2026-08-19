@@ -122,17 +122,20 @@ outputs/                    # baseline figures
 4. SWMM of west-side combined districts; EFDC or a 1-D estuary box as the receiving model (Lin et al. architecture).
 5. Expand beyond Hudson River Park using Harbor Survey Inner Harbor stations (N1, N3B, N6, …).
 
-## Commit / push
+## Collaboration
 
-The GitHub remote [aliarb/rainfall-water-quality](https://github.com/aliarb/rainfall-water-quality) exists and is empty. The PDF under `paper/ref/` and `data/raw/` are gitignored on purpose. When you are ready:
+Code is at [aliarb/rainfall-water-quality](https://github.com/aliarb/rainfall-water-quality). Clone, recreate the environment, and pull public data on your machine. Do not commit `paper/ref/` PDFs or `data/raw/` downloads; both are gitignored.
 
 ```bash
-cd /Users/mojyx/Documents/rainfall-water-quality
-git remote add origin https://github.com/aliarb/rainfall-water-quality.git
-git add .
-git status    # confirm paper/ref PDF is not listed
-git commit -m "Initial Hudson River Park rainfall–water quality baseline"
-git push -u origin main
+git clone https://github.com/aliarb/rainfall-water-quality.git
+cd rainfall-water-quality
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python scripts/fetch_all.py
+python scripts/run_baseline.py
 ```
 
-Say if you want this commit and push done here.
+The Lin et al. (2024) PDF is local-only. Use the DOI in `paper/README.md` if you need the source paper; the equations used here are in [`docs/model_formulation.md`](docs/model_formulation.md).
+
+Work on a branch off `main`, keep commits focused, and open a pull request. Before you push, run `git status` and confirm no PDFs or raw data files are staged. Regenerated figures under `outputs/` may be included when they change the reported baseline.
