@@ -1,0 +1,28 @@
+# Local literature (linked to a separate repo later; do not commit PDFs)
+paper/ref/
+paper/**/*.pdf
+
+# Fetched / derived datasets (reproducible via scripts)
+data/raw/
+data/processed/
+*.parquet
+*.pkl
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.pytest_cache/
+.mypy_cache/
+*.egg-info/
+dist/
+build/
+
+# OS / editor
+.DS_Store
+.env
+.env.*
+.idea/
+.vscode/

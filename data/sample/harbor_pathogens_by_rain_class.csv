@@ -1,0 +1,16 @@
+station,rain_class,n,enterococci_median,fecal_coliform_median
+N3B,heavy,5,81.0,200.0
+N3B,light,46,11.0,60.0
+N3B,medium,20,26.0,99.0
+N3B,rainstorm,2,4.0,24.0
+N3B,sunny,121,6.0,46.0
+N4,heavy,5,50.0,204.0
+N4,light,46,15.0,60.0
+N4,medium,20,33.0,125.0
+N4,rainstorm,2,5.0,40.0
+N4,sunny,121,7.0,51.0
+N5,heavy,5,26.0,104.0
+N5,light,45,13.5,74.0
+N5,medium,20,20.5,140.0
+N5,rainstorm,2,2.0,72.0
+N5,sunny,120,5.0,44.0
