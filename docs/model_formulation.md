@@ -133,9 +133,40 @@ Wet days (\(P \ge 0.1\,\mathrm{mm}\)) are classified with Table 4. We report:
 | Salinity / conductance | Freshwater dilution from runoff and CSO |
 | Harbor Survey enterococci / fecal coliform at N4, N5 | Direct sewage indicator (sparse in time) |
 
-## 5. Next physical steps
+## 5. Wave 1–2 implementation (`scripts/run_wave1.py`)
 
-1. Hourly rain (KNYC / KLGA) convolved with 15-minute USGS IV to resolve intra-event lag and first flush.
-2. Tide-harmonic residuals so the rain kernel is not competing with the M2 tide.
-3. DEP CSO outfall GIS + LTCP event reports as a binary overflow covariate.
-4. SWMM of the west-side combined districts once pipe data are available; EFDC or a simpler 1-D estuary box as the receiving model.
+Hourly Pier 84 series are decomposed as
+
+\[
+Y_t = \beta_0 + \sum_k \bigl(a_k\sin(2\pi t/T_k)+b_k\cos(2\pi t/T_k)\bigr) + \varepsilon_t
+\]
+
+with \(T_k\) for M2, S2, N2, K1, O1, M4, S1, Sa, Ssa. Rain analysis uses \(\varepsilon_t\).
+
+Storms are clusters of wet hours (\(P\ge 0.1\,\mathrm{mm}\)) separated by \(\ge 6\,\mathrm{h}\) dry. CSO-proxy events have depth \(\ge 2.54\,\mathrm{mm}\). Superposed epoch averages \(\varepsilon_t\) from \(-6\) to \(+48\,\mathrm{h}\) of event start. First flush is the median \(M(V)\) curve of excess residual turbidity versus cumulative rain.
+
+Distributed lag and spline GAM add rain to the harmonic mean:
+
+\[
+Y_t = \text{harmonics}(t) + \sum_{k=0}^{12}\beta_k P_{t-k} + e_t
+\]
+
+\[
+Y_t = \text{harmonics}(t) + f_0(P_t)+f_3(P_{t}^{3\mathrm{h}})+f_{24}(P_{t}^{24\mathrm{h}}) + e_t
+\]
+
+Skill is NSE / R² on a later-time hold-out versus harmonics alone.
+
+Harbor Survey counts at N4/N5 use a negative-binomial GLM, with sunny as the rain-class reference:
+
+\[
+\log\mathbb{E}[Y]=\beta_0+\beta_r P_{48\mathrm{h}}+\beta_d D_{\mathrm{dry}}
+\]
+
+and a separate class specification \(\log\mathbb{E}[Y]=\beta_0+\sum_c \beta_c \mathbf{1}_{\text{class}=c}+\beta_d D_{\mathrm{dry}}\).
+
+## 6. Next physical steps
+
+1. DEP CSO outfall GIS + LTCP event reports as a binary overflow covariate.
+2. SWMM of the west-side combined districts once pipe data are available; EFDC or a simpler 1-D estuary box as the receiving model.
+3. Expand beyond Hudson River Park using Harbor Survey Inner Harbor stations (N1, N3B, N6, …).

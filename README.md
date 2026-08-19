@@ -36,7 +36,8 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 python scripts/fetch_all.py          # add --skip-iv to skip 15-minute USGS
-python scripts/run_baseline.py
+python scripts/run_baseline.py      # daily rain-class baseline
+python scripts/run_wave1.py         # tides, storms, DLM/GAM, N4/N5 bacteria
 ```
 
 ## Mathematical model
@@ -98,6 +99,54 @@ Grab-sample **enterococci** and **fecal coliform** at the park stations rise wit
 
 Medians, cells/100 mL; sample sizes are small on heavy days (n = 5).
 
+## Wave 1–2: tides, storms, DLM/GAM, bacteria
+
+Implemented in `scripts/run_wave1.py`. Harmonic periods are M2, S2, N2, K1, O1, M4, S1, Sa, Ssa. Equations are in [`docs/model_formulation.md`](docs/model_formulation.md).
+
+Hourly overlap: **52,436 h** (2019-05-07 to 2025-04-30). **666** rain events (6 h inter-event dry time); **518** meet the 0.10 in CSO-proxy depth.
+
+### What tides already explain
+
+| Series | Harmonic R² (hourly) |
+| --- | ---: |
+| Dissolved oxygen | **0.88** |
+| Specific conductance | 0.42 |
+| Turbidity | 0.21 |
+
+![Tide fit and turbidity residual](outputs/harmonic_turbidity_residual.png)
+
+### Rain on top of tides
+
+Adding a 0–12 h distributed lag or a spline GAM **does not beat** the harmonic baseline on a later-time hold-out. Turbidity validation NSE stays negative (~−0.12); DO validation NSE stays ~0.85 whether or not rain is included. After removing M2 and the annual cycle, hourly turbidity residuals still do not track Central Park rain in a linear or mildly nonlinear way.
+
+| Target | Harmonic val NSE | DLM val NSE | GAM val NSE |
+| --- | ---: | ---: | ---: |
+| Turbidity | −0.12 | −0.12 | −0.13 |
+| Dissolved oxygen | 0.85 | 0.85 | 0.85 |
+
+A weak first-flush signal appears in residual turbidity: median \(M(V{=}0.3)=0.35\) (180 CSO-threshold events) versus 0.30 for uniform washoff. Hours with 24 h rain just above 2.54 mm have residual turbidity **0.85 FNU** higher than hours just below that threshold.
+
+![Superposed epoch](outputs/superposed_epoch_turbidity.png)
+![First flush M(V)](outputs/first_flush_mv.png)
+![DLM lag coefficients](outputs/dlm_lag_coefficients.png)
+
+### Bacteria at N4 / N5 (the CSO tracer)
+
+Negative-binomial GLM on Harbor Survey grabs overlapping the rain record (n ≈ 170 per station). Continuous 48 h rain is the specification that is identifiable; rain-class dummies are too sparse on heavy days for significant contrasts.
+
+| Station / response | 48 h rain coef (log mean) | p-value | Intensity R² |
+| --- | ---: | ---: | ---: |
+| N4 fecal coliform | 0.027 | **0.002** | 0.09 |
+| N5 fecal coliform | 0.054 | **<0.001** | 0.33 |
+| N5 enterococci | 0.048 | **0.037** | 0.31 |
+| N4 enterococci | 0.042 | 0.27 | 0.11 |
+
+At N5, each extra millimetre of rain in the prior 48 h multiplies expected fecal coliform by about \(e^{0.054}\approx 1.055\) (~5.5%). A 25 mm event is on the order of a **2×** increase. Point estimates for rain class at N4 enterococci rise from sunny → light → medium → heavy, but those class jumps are not significant given n = 5 heavy days.
+
+![N4 enterococci rain-class log-means](outputs/n4_enterococci_rain_class.png)
+
+**Takeaway:** learn *timing* from the sonde only after tides are removed — and even then rain is a weak turbidity driver. Learn *sewage severity* from N4/N5 bacteria, where 48 h rainfall is a significant predictor of fecal coliform.
+
 ## Repository layout
 
 ```
@@ -105,8 +154,9 @@ scripts/fetch_usgs.py       # USGS Pier 84 daily + 15-minute
 scripts/fetch_rainfall.py   # ACIS Central Park + IEM hourly
 scripts/fetch_harbor.py     # DEP Harbor Survey N3B/N4/N5
 scripts/fetch_all.py
-scripts/run_baseline.py     # events, transfer function, figures
-src/rainfall_wq/            # site config, Lin et al. skill scores
+scripts/run_baseline.py     # daily rain-class baseline
+scripts/run_wave1.py        # harmonics, storms, DLM/GAM, bacteria GLM
+src/rainfall_wq/            # tides, events, first flush, response models
 docs/model_formulation.md
 paper/README.md             # local PDF only; not in this git repo
 data/raw/                   # gitignored downloads
@@ -116,11 +166,9 @@ outputs/                    # baseline figures
 
 ## Next steps
 
-1. Tide-harmonic residuals so the rain kernel is not competing with M2.
-2. Event-based first flush on 15-minute turbidity using hourly KNYC rain.
-3. DEP CSO outfall GIS + LTCP overflow events as a binary covariate.
-4. SWMM of west-side combined districts; EFDC or a 1-D estuary box as the receiving model (Lin et al. architecture).
-5. Expand beyond Hudson River Park using Harbor Survey Inner Harbor stations (N1, N3B, N6, …).
+1. DEP CSO outfall GIS + LTCP overflow events as a binary treatment (regression discontinuity / classifier).
+2. SWMM of west-side combined districts; EFDC or a 1-D estuary box as the receiving model (Lin et al. architecture).
+3. Expand beyond Hudson River Park using Harbor Survey Inner Harbor stations (N1, N3B, N6, …).
 
 ## Collaboration
 
@@ -134,8 +182,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 python scripts/fetch_all.py
 python scripts/run_baseline.py
+python scripts/run_wave1.py
 ```
-
-The Lin et al. (2024) PDF is local-only. Use the DOI in `paper/README.md` if you need the source paper; the equations used here are in [`docs/model_formulation.md`](docs/model_formulation.md).
 
 Work on a branch off `main`, keep commits focused, and open a pull request. Before you push, run `git status` and confirm no PDFs or raw data files are staged. Regenerated figures under `outputs/` may be included when they change the reported baseline.

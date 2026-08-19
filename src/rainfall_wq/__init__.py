@@ -1,5 +1,5 @@
-"""Baseline tools for linking rainfall / CSO events to Hudson River water quality."""
+"""Tools for linking rainfall / CSO events to Hudson River water quality."""
 
-from .config import SITES, RAINFALL_CLASSES_MM, CSO_RAIN_THRESHOLD_IN
+from .config import CSO_RAIN_THRESHOLD_IN, RAINFALL_CLASSES_MM, SITES
 
-__all__ = ["SITES", "RAINFALL_CLASSES_MM", "CSO_RAIN_THRESHOLD_IN"]
+__all__ = ["CSO_RAIN_THRESHOLD_IN", "RAINFALL_CLASSES_MM", "SITES"]
