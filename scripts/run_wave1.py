@@ -36,6 +36,7 @@ from rainfall_wq.response import (  # noqa: E402
     fit_gam,
 )
 from rainfall_wq.figures import plot_epoch_annotated, plot_first_flush_annotated  # noqa: E402
+from rainfall_wq.tides import fit_harmonics, harmonic_design  # noqa: E402
 
 TARGETS = ["turbidity_fnu", "dissolved_oxygen_mg_l", "specific_conductance_uS_cm"]
 

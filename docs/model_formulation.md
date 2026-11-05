@@ -132,6 +132,20 @@ Wet days (\(P \ge 0.1\,\mathrm{mm}\)) are classified with Table 4. We report:
 | Dissolved oxygen | Oxygen sag after sewage / BOD pulse |
 | Salinity / conductance | Freshwater dilution from runoff and CSO |
 | Harbor Survey enterococci / fecal coliform at N4, N5 | Direct sewage indicator (sparse in time) |
+| Sentinel-2 NDTI, hue / Forel-Ule, Nechad turbidity | Independent channel colour on cloud-free overpasses (not a CSO clock) |
+
+### 4.4 Sentinel-2 water colour
+
+The Pier 84 sonde is on the bulkhead. A 10 m Sentinel-2 pixel there mixes dock, buildings, and water, so optical samples are taken in a small mid-channel box west of the pier (`RS_BBOX` in `config.py`). Microsoft Planetary Computer serves Sentinel-2 L2A without a token. For each scene we keep the median of water pixels (SCL class 6, plus unclassified/dark pixels with MNDWI $> 0.15$).
+
+Indices (clear-sky only):
+
+- NDTI \(=( \rho_{\mathrm{red}} - \rho_{\mathrm{green}} ) / ( \rho_{\mathrm{red}} + \rho_{\mathrm{green}} )\), a turbidity colour index
+- Hue angle and Forel-Ule class from RGB reflectance (van der Woerd / Wernand)
+- Nechad (2010) red-band turbidity proxy, using Sen2Cor BOA reflectance as a stand-in for water-leaving reflectance
+- NDCI from the red-edge band, a chlorophyll proxy
+
+Optical overpasses miss most CSO hours because rain days are cloudy. The series is used as (i) a matchup check against USGS turbidity within 1 h of overpass, (ii) rain-class medians on the cloud-free subset, and (iii) an extra covariate in the daily rain-kernel model of sonde turbidity. It is not used in the hourly DLM/GAM.
 
 ## 5. Wave 1–2 implementation (`scripts/run_wave1.py`)
 
@@ -165,8 +179,17 @@ Harbor Survey counts at N4/N5 use a negative-binomial GLM, with sunny as the rai
 
 and a separate class specification \(\log\mathbb{E}[Y]=\beta_0+\sum_c \beta_c \mathbf{1}_{\text{class}=c}+\beta_d D_{\mathrm{dry}}\).
 
-## 6. Next physical steps
+## 6. Sentinel-2 evaluation (`scripts/run_remote_sensing.py`)
+
+`scripts/fetch_remote_sensing.py` writes one row per usable L2A scene. Evaluation then:
+
+1. Matches mid-channel NDTI and Nechad turbidity to Pier 84 turbidity within 60 min.
+2. Reports medians by Lin et al. rainfall class (biased toward clear days).
+3. Fits the same rain-kernel + seasonal model as the baseline, with satellite NDTI as \(Y\) and, on matchup days, as a covariate for USGS turbidity.
+
+## 7. Next physical steps
 
 1. DEP CSO outfall GIS + LTCP event reports as a binary overflow covariate.
 2. SWMM of the west-side combined districts once pipe data are available; EFDC or a simpler 1-D estuary box as the receiving model.
 3. Expand beyond Hudson River Park using Harbor Survey Inner Harbor stations (N1, N3B, N6, …).
+4. Wet-weather chemistry that is not in the USGS sonde or Harbor Survey grabs: tire-wear 6PPD-quinone, microplastics, and petroleum hydrocarbons / PAHs. Those analytes require storm-targeted laboratory samples; they cannot be inferred from turbidity or fecal counts. The *Urban Water Journal* draft in `paper/main.tex` states this as future work.

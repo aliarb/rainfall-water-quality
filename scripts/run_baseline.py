@@ -37,6 +37,7 @@ from rainfall_wq.config import (  # noqa: E402
     classify_daily_rain_mm,
 )
 from rainfall_wq.figures import plot_timeseries, plot_turbidity_by_class  # noqa: E402
+from rainfall_wq.metrics import skill_table  # noqa: E402
 
 TARGETS = ["turbidity_fnu", "dissolved_oxygen_mg_l", "salinity_psu", "water_temp_c"]
 LAGS_DAYS = list(range(0, 8))

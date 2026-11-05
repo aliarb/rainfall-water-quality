@@ -79,6 +79,19 @@ RAINFALL_CLASSES_MM = {
 CSO_RAIN_THRESHOLD_IN = 0.10
 CSO_RAIN_THRESHOLD_MM = CSO_RAIN_THRESHOLD_IN * 25.4
 
+# --- Sentinel-2 water colour (mid-channel, west of Pier 84) -----------------
+# The sonde sits on the Manhattan bulkhead. Optical pixels at the pier mix
+# dock, buildings, and water, so we sample a small Hudson box ~0.5 km offshore.
+# Planetary Computer STAC + item crop; no token for sentinel-2-l2a.
+RS_COLLECTION = "sentinel-2-l2a"
+RS_STAC_URL = "https://planetarycomputer.microsoft.com/api/stac/v1/search"
+RS_DATA_API = "https://planetarycomputer.microsoft.com/api/data/v1"
+RS_BBOX = (-74.012, 40.763, -74.007, 40.766)  # west, south, east, north
+RS_MAX_CLOUD_PCT = 85.0
+RS_MIN_WATER_PIXELS = 15
+RS_MATCH_MINUTES = 60
+RS_ASSETS = ("B02", "B03", "B04", "B05", "B08", "B11", "SCL")
+
 SITES = {
     "usgs_pier84": {
         "agency": "USGS / HRECOS",
@@ -110,14 +123,16 @@ SITES = {
 
 
 def classify_daily_rain_mm(precip_mm: float) -> str:
-    """Assign a Lin et al. (2024) rainfall class to a daily total (mm)."""
+    """Assign a Lin et al. (2024) rainfall class to a daily total (mm).
+
+    Each class runs up to the next class's lower bound, so totals between the
+    table's one-decimal limits (0.39 in = 9.906 mm) stay in the lower class.
+    """
     if precip_mm is None or precip_mm != precip_mm:  # NaN
         return "unknown"
     if precip_mm <= 0:
         return "sunny"
-    for name, (lo, hi) in RAINFALL_CLASSES_MM.items():
-        if name == "sunny":
-            continue
-        if lo <= precip_mm <= hi:
+    for name in ("extreme", "rainstorm", "heavy", "medium"):
+        if precip_mm >= RAINFALL_CLASSES_MM[name][0]:
             return name
-    return "extreme"
+    return "light"

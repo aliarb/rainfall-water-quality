@@ -1,0 +1,6 @@
+target,model,tau_days,n,R2_val,NSE_val
+ndti,rain kernel + season,0.5,496,0.29859380765472315,0.2770243924752709
+sat_turbidity_fnu,rain kernel + season,3.0,496,0.045618523411335,-0.049713744399981774
+hue_angle_deg,rain kernel + season,2.0,496,0.18204408666855204,0.17430809175033823
+usgs_turbidity_fnu,usgs turbidity rain+season,3.0,237,0.04235691862083097,-0.8350646793102807
+usgs_turbidity_fnu,usgs turbidity rain+season+NDTI,2.0,237,0.14541505496990292,-0.2626609297601201

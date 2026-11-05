@@ -11,12 +11,14 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 import fetch_harbor  # noqa: E402
 import fetch_rainfall  # noqa: E402
+import fetch_remote_sensing  # noqa: E402
 import fetch_usgs  # noqa: E402
 
 
 def main() -> None:
     p = argparse.ArgumentParser()
     p.add_argument("--skip-iv", action="store_true", help="Skip 15-minute USGS download")
+    p.add_argument("--skip-rs", action="store_true", help="Skip Sentinel-2 water-colour extract")
     args = p.parse_args()
 
     print("=== USGS site + daily ===")
@@ -37,6 +39,10 @@ def main() -> None:
 
     print("=== Harbor Survey N3B/N4/N5 ===")
     fetch_harbor.main()
+
+    if not args.skip_rs:
+        print("=== Sentinel-2 water colour (Pier 84 mid-channel) ===")
+        fetch_remote_sensing.main()
 
 
 if __name__ == "__main__":
