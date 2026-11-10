@@ -40,6 +40,15 @@ The USGS sonde **does not measure rainfall**. Precipitation is taken from NOAA C
 | Pathogens / nutrients | [NYC Harbor Water Quality](https://data.cityofnewyork.us/Environment/Harbor-Water-Quality/5uug-f49n) | Socrata `5uug-f49n` | N3B, N4, N5 grab samples |
 | Water colour | [Sentinel-2 L2A](https://planetarycomputer.microsoft.com/dataset/sentinel-2-l2a) | Planetary Computer STAC, no token | NDTI, hue / Forel-Ule, Nechad turbidity proxy, NDCI in a mid-channel box west of Pier 84 |
 
+### Exact data requests
+
+- USGS Pier 84 daily values: https://waterservices.usgs.gov/nwis/dv/?format=json&sites=01376515&startDT=2019-05-01&parameterCd=00010,00095,00300,00400,63680,00480&statCd=00003&siteStatus=all
+- USGS Pier 84 15-minute values (one request per year; change `2019` to 2020–2026): https://waterservices.usgs.gov/nwis/iv/?format=json&sites=01376515&startDT=2019-01-01&endDT=2019-12-31&parameterCd=00010,00095,00300,00400,63680,00480&siteStatus=all
+- DEP Harbor Survey, N3B, N4, N5: https://data.cityofnewyork.us/resource/5uug-f49n.csv?$where=sampling_location%20in%28%27N4%27%2C%27N5%27%2C%27N3B%27%29&$limit=50000
+- NOAA Central Park daily rain (ACIS): https://data.rcc-acis.org/StnData?sid=USW00094728&sdate=2019-01-01&edate=2026-08-19&elems=pcpn,maxt,mint&output=json
+- Central Park hourly rain (IEM ASOS, KNYC): https://mesonet.agron.iastate.edu/cgi-bin/request/asos.py?station=NYC&data=p01i&year1=2019&month1=5&day1=1&year2=2026&month2=8&day2=19&tz=America/New_York&format=onlycomma&latlon=yes&missing=null&trace=0.0001&direct=no&report_type=3
+- LaGuardia hourly rain (IEM ASOS, KLGA backup): https://mesonet.agron.iastate.edu/cgi-bin/request/asos.py?station=LGA&data=p01i&year1=2019&month1=5&day1=1&year2=2026&month2=8&day2=19&tz=America/New_York&format=onlycomma&latlon=yes&missing=null&trace=0.0001&direct=no&report_type=3
+
 **Not used yet (next CSO-physical step):** NYC DEP rain-gauge network, NEXRAD/MRMS Stage IV grids, DEP CSO outfall GIS / LTCP event files, HRECOS (Pier 84 operations moved off USGS after spring 2025).
 
 Raw downloads stay local (`data/raw/`, gitignored). Re-fetch with:
@@ -54,6 +63,7 @@ python scripts/run_wave1.py         # tides, storms, DLM/GAM, N4/N5 bacteria
 python scripts/run_remote_sensing.py  # Sentinel-2 colour vs rain class and USGS turbidity
 python scripts/run_class_response.py  # hypothesis tests: storm response by rain class vs placebo, N3B/N4/N5 bacteria
 python scripts/plot_annotated.py    # plain-language callouts on the figures
+python scripts/run_trigger_threshold.py  # rain trigger R* for DO and fecal coliform (trigger_scan.csv, trigger_selected.csv)
 ```
 
 ## Mathematical model
